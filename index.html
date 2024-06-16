@@ -31,9 +31,13 @@
   <div id="video-controls">
     <input type="file" id="video-file" accept="video/*">
     <label for="video-fps">FPS:</label>
-    <input type="number" id="video-fps" min="1" max="0.3" value="30">
+    <input type="number" id="video-fps" min="1" max="30" value="30">
     <label for="ascii-font-size">Size:</label>
     <input type="number" id="ascii-font-size" min="0.1" max="0.3" value="0.1">
+    <label for="video-width">Video Size:</label>
+    <input type="number" id="video-width" min="1" max="1000" value="200" style="width: 60px;">
+    <span>x</span>
+    <input type="number" id="video-height" min="1" max="1000" value="65" style="width: 60px;">
     <label for="video-mute">Mute Video:</label>
     <input type="checkbox" id="video-mute">
   </div>
@@ -44,8 +48,8 @@
       videoElement.style.display = 'none';
 
       const asciiContainer = document.getElementById('ascii-video');
-      const asciiWidth = 180;
-      const asciiHeight = 60;
+      let asciiWidth = parseInt(document.getElementById('video-width').value, 10);
+      let asciiHeight = parseInt(document.getElementById('video-height').value, 10);
       let asciiFPS = parseInt(document.getElementById('video-fps').value, 10);
       let frameDelay = 1000 / asciiFPS;
       let asciiFontSize = parseFloat(document.getElementById('ascii-font-size').value);
@@ -70,8 +74,21 @@
 
         asciiContainer.textContent = asciiFrame;
         asciiContainer.style.fontSize = asciiFontSize + 'em';
+
         setTimeout(updateAscii, frameDelay);
+
+        canvas.remove();
       }
+
+      document.getElementById('video-width').addEventListener('input', () => {
+        asciiWidth = parseInt(document.getElementById('video-width').value, 10);
+        updateAscii();
+      });
+
+      document.getElementById('video-height').addEventListener('input', () => {
+        asciiHeight = parseInt(document.getElementById('video-height').value, 10);
+        updateAscii();
+      });
 
       document.getElementById('video-fps').addEventListener('input', () => {
         asciiFPS = parseInt(document.getElementById('video-fps').value, 10);
@@ -97,6 +114,8 @@
         videoElement.play();
         updateAscii();
       });
+
+      document.body.appendChild(videoElement);
     });
   </script>
 </body>
