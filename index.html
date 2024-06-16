@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII Video Player</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #ascii-video {
+      font-family: monospace;
+      white-space: pre;
+      font-size: 0.1em;
+    }
+    @media (max-width: 768px) {
+      #ascii-video {
+        font-size: 0.6em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="ascii-video"></div>
+  <div id="video-controls">
+    <input type="file" id="video-file" accept="video/*">
+    <label for="video-fps">FPS:</label>
+    <input type="number" id="video-fps" min="1" max="0.3" value="30">
+    <label for="ascii-font-size">Size:</label>
+    <input type="number" id="ascii-font-size" min="0.1" max="0.3" value="0.1">
+    <label for="video-mute">Mute Video:</label>
+    <input type="checkbox" id="video-mute">
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const videoElement = document.createElement('video');
+      videoElement.style.display = 'none';
+
+      const asciiContainer = document.getElementById('ascii-video');
+      const asciiWidth = 180;
+      const asciiHeight = 60;
+      let asciiFPS = parseInt(document.getElementById('video-fps').value, 10);
+      let frameDelay = 1000 / asciiFPS;
+      let asciiFontSize = parseFloat(document.getElementById('ascii-font-size').value);
+
+      function updateAscii() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = asciiWidth;
+        canvas.height = asciiHeight;
+        ctx.drawImage(videoElement, 0, 0, asciiWidth, asciiHeight);
+
+        let asciiFrame = '';
+        const imageData = ctx.getImageData(0, 0, asciiWidth, asciiHeight).data;
+        
+        for (let i = 0; i < imageData.length; i += 4) {
+          const brightness = (imageData[i] + imageData[i + 1] + imageData[i + 2]) / 3;
+          asciiFrame += '@%#*+=-:. '[Math.floor(brightness / 255 * 8)];
+          if ((i / 4 + 1) % asciiWidth === 0) {
+            asciiFrame += '\n';
+          }
+        }
+
+        asciiContainer.textContent = asciiFrame;
+        asciiContainer.style.fontSize = asciiFontSize + 'em';
+        setTimeout(updateAscii, frameDelay);
+      }
+
+      document.getElementById('video-fps').addEventListener('input', () => {
+        asciiFPS = parseInt(document.getElementById('video-fps').value, 10);
+        frameDelay = 1000 / asciiFPS;
+      });
+
+      document.getElementById('ascii-font-size').addEventListener('input', () => {
+        asciiFontSize = parseFloat(document.getElementById('ascii-font-size').value);
+      });
+
+      document.getElementById('video-mute').addEventListener('change', () => {
+        videoElement.muted = document.getElementById('video-mute').checked;
+      });
+
+      document.getElementById('video-file').addEventListener('change', () => {
+        const file = document.getElementById('video-file').files[0];
+        if (file) {
+          videoElement.src = URL.createObjectURL(file);
+        }
+      });
+
+      videoElement.addEventListener('loadeddata', () => {
+        videoElement.play();
+        updateAscii();
+      });
+    });
+  </script>
+</body>
+</html>
